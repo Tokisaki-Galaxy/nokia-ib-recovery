@@ -153,6 +153,31 @@ python -m unittest discover -s tests -t .
 
 The test suite builds synthetic `sms.ib` and `phonebook.ib` files, so it does not need real backup data.
 
+## Releasing
+
+The version is derived from git tags by `setuptools-scm`. There is no version field in `pyproject.toml`.
+
+One time setup on PyPI: add a pending publisher with these values.
+
+| Field | Value |
+| --- | --- |
+| PyPI project name | `nokia-ib-recovery` |
+| Owner | `Tokisaki-Galaxy` |
+| Repository | `nokia-ib-recovery` |
+| Workflow name | `publish.yml` |
+| Environment | `pypi` |
+
+No API token is needed. The workflow authenticates with OpenID Connect through the `pypi` environment.
+
+To publish, push a tag that starts with `v`:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+The tag starts `.github/workflows/publish.yml`, which runs the tests, builds the sdist and the wheel, and uploads them to PyPI. Tags such as `v0.1.0` and `v0.2.0rc1` map to valid Python versions automatically. A build without any tag falls back to `0.0.0` and is not meant for release.
+
 ## License
 
 MIT. See `LICENSE`.

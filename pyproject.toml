@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=61"]
+requires = ["setuptools>=61", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "nokia-ib-recovery"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Recover SMS and contacts from Nokia Series 30+ .ib backups"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -13,14 +13,22 @@ authors = [{ name = "Tokisaki-Galaxy" }]
 keywords = ["nokia", "series-30", "sms", "backup", "recovery", "reverse-engineering"]
 classifiers = [
     "Development Status :: 3 - Alpha",
+    "Environment :: Console",
     "Intended Audience :: End Users/Desktop",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Topic :: Utilities",
 ]
 
+[project.urls]
+Homepage = "https://github.com/Tokisaki-Galaxy/nokia-ib-recovery"
+Issues = "https://github.com/Tokisaki-Galaxy/nokia-ib-recovery/issues"
+
 [project.scripts]
 nokia-ib = "nokia_ib.cli:main"
 
 [tool.setuptools.packages.find]
 include = ["nokia_ib*"]
+
+[tool.setuptools_scm]
+fallback_version = "0.0.0"
