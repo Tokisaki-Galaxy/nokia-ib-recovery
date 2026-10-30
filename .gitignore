@@ -1,0 +1,25 @@
+# Personal backup data - never commit
+/Backups/
+/恢复结果/
+/output/
+/out/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Playwright
+.playwright-mcp/
