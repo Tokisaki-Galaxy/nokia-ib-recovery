@@ -37,11 +37,26 @@ Python 3.8 or newer. No dependencies.
 
 ```bash
 git clone https://github.com/Tokisaki-Galaxy/nokia-ib-recovery.git
-cd REPO
+cd nokia-ib-recovery
 pip install -e .
 ```
 
-Or run it without installing:
+### Using uv
+
+The project is a standard `pyproject.toml` package, so uv needs no extra setup. Inside the checkout, `uv run` creates the environment and installs the project on first use:
+
+```bash
+uv run nokia-ib --help
+uv run nokia-ib all "All-backup_01-05-2017_00-01-25" -o output
+```
+
+To run it from GitHub without cloning, use `uvx`:
+
+```bash
+uvx --from git+https://github.com/Tokisaki-Galaxy/nokia-ib-recovery.git nokia-ib --help
+```
+
+Or run it without installing at all:
 
 ```bash
 python -m nokia_ib --help
