@@ -1,8 +1,15 @@
 # Nokia Series 30+ backup recovery
 
+[![PyPI version](https://img.shields.io/pypi/v/nokia-ib-recovery)](https://pypi.org/project/nokia-ib-recovery/)
+[![Python versions](https://img.shields.io/pypi/pyversions/nokia-ib-recovery)](https://pypi.org/project/nokia-ib-recovery/)
+[![tests](https://github.com/Tokisaki-Galaxy/nokia-ib-recovery/actions/workflows/tests.yml/badge.svg)](https://github.com/Tokisaki-Galaxy/nokia-ib-recovery/actions/workflows/tests.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 Recover SMS messages and contacts from the `.ib` backup files written by Nokia feature phones running Series 30+ firmware.
 
-The phone's built in backup tool creates a folder like `All-backup_01-05-2017_00-01-25` containing:
+![Conversation browser](docs/chat.png)
+
+The phone's built in backup tool writes a folder named like `All-backup_01-05-2017_00-01-25` containing three files:
 
 ```
 ibphone_head.in
@@ -10,7 +17,16 @@ phonebook.ib
 sms.ib
 ```
 
-These files are not a database and they are not encrypted. They are flat dumps of the phone's internal record store, with fixed size records and plain UTF-16 text. This project decodes them and exports the content to CSV, TXT, HTML and vCard, with no third party dependencies.
+These files are not a database and they are not encrypted. They are flat dumps of the phone's internal record store, with fixed size records and plain UTF-16 text. This project decodes them and exports CSV, TXT, HTML and vCard, using only the Python standard library.
+
+## Quick start
+
+```bash
+pip install nokia-ib-recovery
+nokia-ib all "All-backup_01-05-2017_00-01-25" -o output
+```
+
+Open `output/chat.html` in a browser. The CSV, TXT and vCard files are written to the same folder.
 
 ## What it does
 
@@ -22,18 +38,26 @@ These files are not a database and they are not encrypted. They are flat dumps o
 - Exports a phone style conversation browser grouped by contact.
 - Reads the record table from the file header, so record counts and record sizes are not hard coded.
 
-## Tested on
-
-A single Nokia TA-127B backup with 776 message records and 29 contacts. The same container layout is likely used by other Series 30+ devices, but other models and firmware revisions have not been verified. If the header values differ, pass `--header-size` and open an issue with the header bytes.
-
-The format notes came from these threads, with several fields corrected and extended while working on the file above:
-
-- [Parsing/converting Nokia "Smart Feature OS" backup .ib files?](https://stackoverflow.com/questions/54009980/)
-- [Backup/access SMS on Nokia 3310 3g/2017 from Linux PC?](https://superuser.com/questions/1389657/)
-
 ## Install
 
-Python 3.8 or newer. No dependencies.
+Python 3.8 or newer. No runtime dependencies.
+
+### pip
+
+```bash
+pip install nokia-ib-recovery
+```
+
+### uv
+
+```bash
+uv tool install nokia-ib-recovery
+
+# or run it without installing
+uvx --from nokia-ib-recovery nokia-ib --help
+```
+
+### From source
 
 ```bash
 git clone https://github.com/Tokisaki-Galaxy/nokia-ib-recovery.git
@@ -41,22 +65,13 @@ cd nokia-ib-recovery
 pip install -e .
 ```
 
-### Using uv
-
-The project is a standard `pyproject.toml` package, so uv needs no extra setup. Inside the checkout, `uv run` creates the environment and installs the project on first use:
+With uv, `uv run` creates the environment and installs the project on first use:
 
 ```bash
 uv run nokia-ib --help
-uv run nokia-ib all "All-backup_01-05-2017_00-01-25" -o output
 ```
 
-To run it from GitHub without cloning, use `uvx`:
-
-```bash
-uvx --from git+https://github.com/Tokisaki-Galaxy/nokia-ib-recovery.git nokia-ib --help
-```
-
-Or run it without installing at all:
+Running straight from the checkout without any install also works:
 
 ```bash
 python -m nokia_ib --help
@@ -121,17 +136,21 @@ Contacts are matched to messages by phone number. To override a name, pass a JSO
 nokia-ib all backup/ --aliases aliases.json -o output
 ```
 
-## Notes on time
+## Format notes
 
-Two fields carry a timestamp and they disagree.
+The parsers read the record table from the file header, decode BCD addresses and UCS-2 or GSM 03.38 bodies, take the incoming timestamp from the embedded SMS PDU, and merge multipart messages through the concatenation UDH. All offsets and field layouts are documented in [docs/format.md](docs/format.md).
 
-Incoming messages store the SMS centre timestamp inside the raw PDU. That value is used as is.
+Two details are worth knowing before reading the notes.
 
-Outgoing messages store a seven byte binary timestamp whose first byte is the year offset from 1980. That value is also used as is.
+Incoming and outgoing messages use different timestamps. Incoming messages carry the SMS centre time in the PDU. Outgoing messages store a seven byte binary time whose year is counted from 1980.
 
-Some records also contain a 32 bit Unix style timestamp near the start of the record. On the tested firmware it is exactly ten years early because the year was counted from 1980 but converted as if it started at 1970. The exporter ignores that field.
+A 32 bit Unix style timestamp near the start of each record is exactly ten years early on the tested firmware, because the year was counted from 1980 but converted as if it started at 1970. The exporter ignores it.
 
 The backup folder name is not a reliable date either. A phone that lost power may name the folder with its default clock, which is why a backup full of 2023 messages can be called `All-backup_01-05-2017_...`.
+
+## Tested on
+
+A single Nokia TA-127B backup with 776 message records and 29 contacts. The same container layout is likely used by other Series 30+ devices, but other models and firmware revisions have not been verified. If the header values differ, pass `--header-size` and open an issue with the header bytes.
 
 ## Limitations
 
@@ -151,13 +170,13 @@ Backups contain personal messages and phone numbers. The `.gitignore` in this re
 python -m unittest discover -s tests -t .
 ```
 
-The test suite builds synthetic `sms.ib` and `phonebook.ib` files, so it does not need real backup data.
+The test suite builds synthetic `sms.ib` and `phonebook.ib` files, so it does not need real backup data. The screenshot above was generated from such a synthetic file.
 
 ## Releasing
 
 The version is derived from git tags by `setuptools-scm`. There is no version field in `pyproject.toml`.
 
-One time setup on PyPI: add a pending publisher with these values.
+This repository is already configured for PyPI trusted publishing. Forks need a pending publisher on PyPI with these values.
 
 | Field | Value |
 | --- | --- |
@@ -176,7 +195,14 @@ git tag v0.1.0
 git push origin v0.1.0
 ```
 
-The tag starts `.github/workflows/publish.yml`, which runs the tests, builds the sdist and the wheel, and uploads them to PyPI. Tags such as `v0.1.0` and `v0.2.0rc1` map to valid Python versions automatically. A build without any tag falls back to `0.0.0` and is not meant for release.
+The tag starts `.github/workflows/publish.yml`, which runs the tests, builds the sdist and the wheel, and uploads them to PyPI. Tags such as `v0.1.0` and `v0.2.0rc1` map to valid Python versions automatically. A build without any tag produces a `0.0.x` development version and is not meant for release.
+
+## Credits
+
+The format notes started from these threads, then were corrected and extended against a real TA-127B backup:
+
+- [Parsing/converting Nokia "Smart Feature OS" backup .ib files?](https://stackoverflow.com/questions/54009980/)
+- [Backup/access SMS on Nokia 3310 3g/2017 from Linux PC?](https://superuser.com/questions/1389657/)
 
 ## License
 
