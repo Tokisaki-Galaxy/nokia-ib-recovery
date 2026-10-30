@@ -18,7 +18,7 @@ from nokia_ib.exporters import (
     write_sms_html,
     write_sms_txt,
 )
-from nokia_ib.phonebook import compose_name, parse_phonebook
+from nokia_ib.phonebook import Contact, PhoneNumber, compose_name, parse_phonebook
 from nokia_ib.sms import load_messages, parse_sms, read_layout
 
 from tests.fixtures import _gsm7_pack, build_phonebook, build_sms
@@ -261,6 +261,21 @@ class ExportTests(unittest.TestCase):
             vcf = handle.read()
         self.assertIn("FN:", vcf)
         self.assertIn("TEL;TYPE=CELL:+8613700137000", vcf)
+
+    def test_contact_message_count_is_not_doubled(self):
+        contact = Contact(
+            index=0,
+            offset=0,
+            name="Alice",
+            name_first="Alice",
+            name_second="",
+            numbers=[PhoneNumber(raw="13800138000", flag=0x01)],
+        )
+        path = os.path.join(self.tmp.name, "counts.csv")
+        write_contacts_csv(path, [contact], {"13800138000": 5})
+        with open(path, encoding="utf-8-sig") as handle:
+            body = handle.read()
+        self.assertIn(",5,", body)
 
 
 if __name__ == "__main__":

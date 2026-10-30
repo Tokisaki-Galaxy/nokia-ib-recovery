@@ -199,8 +199,7 @@ def write_contacts_csv(
             primary = contact.numbers[0].formatted if contact.numbers else ""
             all_numbers = " / ".join(number.formatted for number in contact.numbers)
             sms_count = sum(
-                counts.get(number.raw, 0)
-                + counts.get(normalise_number(number.raw), 0)
+                counts.get(normalise_number(number.raw), 0)
                 for number in contact.numbers
             )
             writer.writerow(
@@ -233,7 +232,7 @@ def write_contacts_txt(
             if contact.extra:
                 handle.write("    note: " + contact.extra + "\n")
             count = sum(
-                counts.get(number.raw, 0) + counts.get(normalise_number(number.raw), 0)
+                counts.get(normalise_number(number.raw), 0)
                 for number in contact.numbers
             )
             if count:
@@ -277,7 +276,7 @@ def write_contacts_html(
     for contact in contacts:
         numbers = "<br>".join(html.escape(number.formatted) for number in contact.numbers)
         count = sum(
-            counts.get(number.raw, 0) + counts.get(normalise_number(number.raw), 0)
+            counts.get(normalise_number(number.raw), 0)
             for number in contact.numbers
         )
         rows.append(
